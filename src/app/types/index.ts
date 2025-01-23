@@ -54,7 +54,6 @@ export interface QuestionnaireResponse {
   sensitivity: 'high' | 'medium' | 'low'
   concerns: string[]
   allergies: string[]
-  currentProducts: string[]
   lifestyle: {
     sunExposure: 'high' | 'medium' | 'low'
     stress: 'high' | 'medium' | 'low'

@@ -21,7 +21,6 @@ export default function Questionnaire() {
     sensitivity: undefined,
     concerns: [],
     allergies: [],
-    currentProducts: [],
     lifestyle: {
       sunExposure: 'medium',
       stress: 'medium',
