@@ -165,12 +165,28 @@ export default function Recommendations() {
           ))}
         </div>
 
-        <button
-          onClick={() => router.push('/analysis')}
-          className="mt-8 w-full bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300 transition"
-        >
-          Back to Analysis
-        </button>
+        <div className="mt-8 space-y-4">
+          <button
+            onClick={() => router.push('/camera')}
+            className="w-full bg-primary text-white py-3 rounded-lg hover:opacity-90 transition"
+          >
+            Take Another Photo
+          </button>
+
+          <button
+            onClick={() => router.push('/analysis')}
+            className="w-full bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300 transition"
+          >
+            Back to Analysis
+          </button>
+
+          <button
+            onClick={() => router.push('/')}
+            className="w-full border border-gray-300 text-gray-600 py-3 rounded-lg hover:bg-gray-50 transition"
+          >
+            Back to Home
+          </button>
+        </div>
       </div>
     </div>
   )
