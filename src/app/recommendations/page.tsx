@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SkinAnalysisResponse } from '../types'
+import { getTextScoreColor } from '@/utils/formatting'
+import { getAnalysis } from '@/utils/storage'
 
 interface Recommendation {
   concern: string
@@ -18,12 +20,6 @@ interface RecommendationsResponse {
   error?: string
 }
 
-const getScoreColor = (score: number) => {
-  if (score >= 80) return 'text-green-500'
-  if (score >= 60) return 'text-yellow-500'
-  return 'text-red-500'
-}
-
 export default function Recommendations() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -36,17 +32,16 @@ export default function Recommendations() {
 
     const getRecommendations = async () => {
       try {
-        const analysisData = localStorage.getItem('skinAnalysis')
+        const analysisData = getAnalysis()
         if (!analysisData) {
           router.push('/camera')
           return
         }
 
-        const analysis = JSON.parse(analysisData) as SkinAnalysisResponse
         const response = await fetch('/api/recommendations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(analysis)
+          body: JSON.stringify(analysisData)
         })
 
         const data = await response.json() as RecommendationsResponse
@@ -131,7 +126,7 @@ export default function Recommendations() {
             <div key={index} className="bg-white rounded-lg shadow-lg p-4">
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-semibold">{rec.concern}</h2>
-                <span className={`text-sm font-medium bg-secondary bg-opacity-10 ${getScoreColor(rec.score)} px-2 py-1 rounded-full`}>
+                <span className={`text-sm font-medium bg-secondary bg-opacity-10 ${getTextScoreColor(rec.score)} px-2 py-1 rounded-full`}>
                   Score: {rec.score}
                 </span>
               </div>

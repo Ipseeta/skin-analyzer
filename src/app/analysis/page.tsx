@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SkinAnalysisResponse } from '../types'
 import { METRIC_MESSAGES } from '../constants/metrics'
+import { formatMetricName, getScoreColor, getTextScoreColor, getMetricDescription } from '@/utils/formatting'
+import { getAnalysis } from '@/utils/storage'
 
 export default function Analysis() {
   const router = useRouter()
@@ -12,9 +14,9 @@ export default function Analysis() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const data = localStorage.getItem('skinAnalysis')
-    if (data) {
-      setAnalysis(JSON.parse(data))
+    const analysisData = getAnalysis()
+    if (analysisData) {
+      setAnalysis(analysisData)
     }
     setLoading(false)
   }, [])

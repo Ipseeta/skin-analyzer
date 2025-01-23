@@ -4,11 +4,14 @@ import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Webcam from 'react-webcam'
 import type { QuestionnaireResponse } from '../types'
+import { saveAnalysis, getQuestionnaire } from '@/utils/storage'
+import { createErrorState, ApiError } from '@/utils/error'
 
 export default function Camera() {
   const router = useRouter()
   const webcamRef = useRef<Webcam>(null)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
+  const [error, setError] = useState<ApiError | null>(null)
 
   const capture = useCallback(() => {
     if (webcamRef.current) {
@@ -24,13 +27,7 @@ export default function Camera() {
   const handleNext = async () => {
     if (capturedImage) {
       try {
-        // Get questionnaire data from localStorage
-        const questionnaireData = localStorage.getItem('skinQuestionnaire')
-        const questionnaire = questionnaireData ? 
-          JSON.parse(questionnaireData) as QuestionnaireResponse : 
-          undefined
-
-        // Remove the data:image/jpeg;base64, prefix if it exists
+        const questionnaire = getQuestionnaire()
         const base64Image = capturedImage.split(',')[1] || capturedImage
 
         const response = await fetch('/api/analyze', {
@@ -40,7 +37,7 @@ export default function Camera() {
           },
           body: JSON.stringify({ 
             image: base64Image,
-            questionnaire // Include questionnaire data
+            questionnaire
           }),
         })
 
@@ -49,19 +46,30 @@ export default function Camera() {
         }
 
         const analysis = await response.json()
-        
-        // Store both analysis and questionnaire data
-        localStorage.setItem('skinAnalysis', JSON.stringify({
-          ...analysis,
-          questionnaire
-        }))
-        
+        saveAnalysis(analysis)
         router.push('/analysis')
       } catch (error) {
-        console.error('Error analyzing image:', error)
-        // Handle error (show error message to user)
+        const errorState = createErrorState(error)
+        setError(errorState.error)
       }
     }
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto text-center">
+          <h1 className="text-2xl font-bold mb-4">Error</h1>
+          <p className="text-red-500 mb-6">{error.message}</p>
+          <button
+            onClick={() => setError(null)}
+            className="bg-primary text-white px-6 py-2 rounded-lg hover:opacity-90 transition"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

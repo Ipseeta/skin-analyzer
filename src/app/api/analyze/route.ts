@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { SkinAnalysisResponse } from '@/app/types'
+import { handleApiError } from '@/utils/error'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -43,7 +44,12 @@ export async function POST(request: Request) {
     const { image, questionnaire } = await request.json()
     if (!image) {
       return NextResponse.json(
-        { error: 'No image provided' },
+        { 
+          error: handleApiError({
+            message: 'No image provided',
+            code: 'NO_IMAGE'
+          })
+        },
         { status: 400 }
       )
     }
@@ -92,11 +98,8 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error('Error analyzing image:', error)
-    if (error instanceof Error) {
-      console.error('Error details:', error.message)
-    }
     return NextResponse.json(
-      { error: 'Failed to analyze image', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: handleApiError(error) },
       { status: 500 }
     )
   }

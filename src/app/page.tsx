@@ -1,26 +1,31 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { clearStorageData } from '@/utils/storage'
 
 export default function Home() {
+  const router = useRouter()
+
+  useEffect(() => {
+    clearStorageData()
+  }, [])
+
   return (
-    <main className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">Skin Analyzer</h1>
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-semibold mb-4">Start Your Skin Analysis</h2>
-          <p className="mb-6">
-            Get personalized skincare recommendations based on your unique skin profile.
-          </p>
-          <Link 
-            href="/questionnaire"
-            className="block w-full bg-primary text-white text-center py-3 rounded-lg hover:opacity-90 transition"
-          >
-            Begin Analysis
-          </Link>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-md mx-auto text-center">
+        <h1 className="text-4xl font-bold mb-6">Skin Analysis</h1>
+        <p className="text-gray-600 mb-8">
+          Get personalized skincare recommendations based on AI analysis
+        </p>
+        
+        <button
+          onClick={() => router.push('/questionnaire')}
+          className="w-full bg-primary text-white py-3 rounded-lg hover:opacity-90 transition"
+        >
+          Start Analysis
+        </button>
       </div>
-    </main>
+    </div>
   )
 } 
