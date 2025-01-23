@@ -6,36 +6,45 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-const RECOMMENDATION_PROMPT = `You are a skincare expert API. Your task is to analyze skin metrics and provide product recommendations.
+const RECOMMENDATION_PROMPT = `You are a skincare expert API. Analyze these skin metrics and provide targeted recommendations.
 
 ALWAYS respond with a JSON object containing a "recommendations" array. Each recommendation must follow this structure:
-
 {
   "recommendations": [
     {
-      "concern": "hyperpigmentation",
-      "score": 75,
-      "description": "Dark spots and uneven skin tone that need brightening treatments",
-      "searchTerms": ["vitamin c serum", "kojic acid cream"],
-      "ingredients": ["vitamin c", "niacinamide", "kojic acid"],
-      "usage": "Apply serum in the morning after cleansing, follow with sunscreen"
+      "concern": "concern name",
+      "score": <numeric_score>,
+      "description": "detailed explanation",
+      "searchTerms": ["product suggestions"],
+      "ingredients": ["key ingredients"],
+      "usage": "application instructions"
     }
   ]
 }
 
-Create a recommendation object for each skin concern. Common skin concerns and their treatments:
-- Hyperpigmentation: Vitamin C, kojic acid, niacinamide
-- Wrinkles: Retinol, peptides, hyaluronic acid
-- Texture: AHA/BHA exfoliants, glycolic acid
-- Redness: Centella asiatica, green tea, aloe
-- Dryness: Ceramides, hyaluronic acid, squalane
+Common skin concerns and their treatments:
+- Dark Circles: Vitamin K, caffeine, peptides, retinol
+- Smoothness: Gentle exfoliants, hyaluronic acid, ceramides
+- Uneven Skintone: Vitamin C, niacinamide, alpha arbutin
+- Radiance: AHA/BHA, vitamin C, niacinamide
+- Dull Skin: Glycolic acid, vitamin C, enzymes
+- Skin Shine: Mattifying ingredients, niacinamide, salicylic acid
+- Hyperpigmentation: Vitamin C, kojic acid, niacinamide, alpha arbutin
+- Melasma: Tranexamic acid, kojic acid, vitamin C, sunscreen
+- Eyebags: Caffeine, peptides, vitamin K
+- Redness: Centella asiatica, green tea, aloe, niacinamide
+- Texture: AHA/BHA exfoliants, glycolic acid, lactic acid
+- Wrinkles: Retinol, peptides, hyaluronic acid, collagen
+- Skin Sagging: Peptides, retinol, collagen boosters
+- Dark Spots: Vitamin C, alpha arbutin, licorice root
+- Freckles: Vitamin C, niacinamide, sunscreen
 
+Provide specific product recommendations for each concern and usage instructions.
 Return ONLY valid JSON with no additional text.`
 
 export async function POST(request: Request) {
   try {
     const analysis: SkinAnalysisResponse = await request.json()
-    console.log('Analysis from recommendations API:', analysis)
 
     if (!analysis?.metrics) {
       return NextResponse.json(
@@ -61,7 +70,7 @@ export async function POST(request: Request) {
     })
 
     const content = response.choices[0].message.content
-    console.log('Raw GPT response in recommendations API:', response.choices[0])
+
     if (!content) {
       throw new Error('No content in OpenAI response')
     }

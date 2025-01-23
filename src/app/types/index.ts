@@ -32,17 +32,25 @@ export interface Product {
   amazonUrl?: string;
 }
 
+export interface SkinMetrics {
+  darkCircles: number;
+  smoothness: number;
+  unevenSkintone: number;
+  radiance: number;
+  dullSkin: number;
+  skinShine: number;
+  hyperpigmentation: number;
+  melasma: number;
+  eyebags: number;
+  redness: number;
+  texture: number;
+  wrinkles: number;
+  skinSagging: number;
+  darkSpots: number;
+  freckles: number;
+}
+
 export interface SkinAnalysisResponse {
-  metrics: {
-    hyperpigmentation: number;
-    melasma: number;
-    eyebags: number;
-    redness: number;
-    texture: number;
-    wrinkles: number;
-    skinSagging: number;
-    darkSpots: number;
-    freckles: number;
-  };
+  metrics: SkinMetrics;
   overallScore: number;
 } 
