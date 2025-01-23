@@ -18,6 +18,12 @@ interface RecommendationsResponse {
   error?: string
 }
 
+const getScoreColor = (score: number) => {
+  if (score >= 80) return 'text-green-500'
+  if (score >= 60) return 'text-yellow-500'
+  return 'text-red-500'
+}
+
 export default function Recommendations() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -125,7 +131,7 @@ export default function Recommendations() {
             <div key={index} className="bg-white rounded-lg shadow-lg p-4">
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-semibold">{rec.concern}</h2>
-                <span className="text-sm font-medium bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-full">
+                <span className={`text-sm font-medium bg-secondary bg-opacity-10 ${getScoreColor(rec.score)} px-2 py-1 rounded-full`}>
                   Score: {rec.score}
                 </span>
               </div>
