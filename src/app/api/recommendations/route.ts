@@ -7,6 +7,7 @@ const openai = new OpenAI({
 })
 
 const RECOMMENDATION_PROMPT = `You are a skincare expert API. Analyze these skin metrics and provide targeted recommendations.
+Consider the user's questionnaire responses (User Profile data) for more personalized recommendations.
 
 ALWAYS respond with a JSON object containing a "recommendations" array. Each recommendation must follow this structure:
 {
@@ -27,7 +28,6 @@ Common skin concerns and their treatments:
 - Smoothness: Gentle exfoliants, hyaluronic acid, ceramides
 - Uneven Skintone: Vitamin C, niacinamide, alpha arbutin
 - Radiance: AHA/BHA, vitamin C, niacinamide
-- Dull Skin: Glycolic acid, vitamin C, enzymes
 - Skin Shine: Mattifying ingredients, niacinamide, salicylic acid
 - Hyperpigmentation: Vitamin C, kojic acid, niacinamide, alpha arbutin
 - Melasma: Tranexamic acid, kojic acid, vitamin C, sunscreen
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
-
+    console.log("Generating recommendations...")
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -62,7 +62,10 @@ export async function POST(request: Request) {
         },
         {
           role: "user",
-          content: `Generate recommendations for these skin concerns: ${JSON.stringify(analysis.metrics)}`
+          content: `Generate recommendations based on:
+            Skin Metrics: ${JSON.stringify(analysis.metrics)}
+            User Profile: ${JSON.stringify(analysis.questionnaire)}
+          `
         }
       ],
       temperature: 0.1,
