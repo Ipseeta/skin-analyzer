@@ -49,7 +49,22 @@ export interface SkinMetrics {
   freckles: number;
 }
 
+export interface QuestionnaireResponse {
+  skinType: 'oily' | 'dry' | 'combination' | 'normal'
+  sensitivity: 'high' | 'medium' | 'low'
+  concerns: string[]
+  allergies: string[]
+  currentProducts: string[]
+  lifestyle: {
+    sunExposure: 'high' | 'medium' | 'low'
+    stress: 'high' | 'medium' | 'low'
+    sleep: 'good' | 'fair' | 'poor'
+    diet: 'balanced' | 'needs-improvement'
+  }
+}
+
 export interface SkinAnalysisResponse {
   metrics: SkinMetrics;
   overallScore: number;
+  questionnaire?: QuestionnaireResponse;
 } 
