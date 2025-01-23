@@ -40,7 +40,7 @@ Ensure all metrics are included and accurately scored.`
 
 export async function POST(request: Request) {
   try {
-    const { image } = await request.json()
+    const { image, questionnaire } = await request.json()
     if (!image) {
       return NextResponse.json(
         { error: 'No image provided' },
@@ -50,6 +50,7 @@ export async function POST(request: Request) {
 
     // Remove data URL prefix if present
     const base64Image = image.replace(/^data:image\/[a-z]+;base64,/, '')
+    console.log("Generating analysis...")
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -83,7 +84,12 @@ export async function POST(request: Request) {
     }
 
     const analysis = JSON.parse(analysisContent) as SkinAnalysisResponse
-    return NextResponse.json(analysis)
+    
+    // Include questionnaire data in response
+    return NextResponse.json({
+      ...analysis,
+      questionnaire
+    })
   } catch (error) {
     console.error('Error analyzing image:', error)
     if (error instanceof Error) {
