@@ -2,14 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { SkinAnalysis } from '../types'
+import { SkinAnalysisResponse } from '../types'
 
 export default function Analysis() {
   const router = useRouter()
-  const [analysis, setAnalysis] = useState<SkinAnalysis>({
-    overallScore: 0,
-    metrics: [] // Initialize with empty array
-  })
+  const [analysis, setAnalysis] = useState<SkinAnalysisResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -21,7 +18,7 @@ export default function Analysis() {
         return
       }
       
-      const parsedAnalysis = JSON.parse(storedAnalysis)
+      const parsedAnalysis = JSON.parse(storedAnalysis) as SkinAnalysisResponse
       setAnalysis(parsedAnalysis)
     } catch (err) {
       setError('Failed to load analysis data')
@@ -63,6 +60,10 @@ export default function Analysis() {
     )
   }
 
+  if (!analysis) return null
+
+  const metricEntries = Object.entries(analysis.metrics)
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-md mx-auto">
@@ -85,16 +86,16 @@ export default function Analysis() {
         </div>
 
         <div className="space-y-4">
-          {analysis.metrics?.map((metric) => (
-            <div key={metric.name} className="bg-white rounded-lg shadow-lg p-4">
+          {metricEntries.map(([name, score]) => (
+            <div key={name} className="bg-white rounded-lg shadow-lg p-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="font-medium">{metric.name}</span>
-                <span className="text-sm font-semibold">{metric.score}/100</span>
+                <span className="font-medium">{name}</span>
+                <span className="text-sm font-semibold">{score}/100</span>
               </div>
               <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-secondary"
-                  style={{ width: `${metric.score}%` }}
+                  style={{ width: `${score}%` }}
                 ></div>
               </div>
             </div>

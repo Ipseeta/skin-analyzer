@@ -30,4 +30,19 @@ export interface Product {
   concerns: string[];
   details?: ProductDetails;
   amazonUrl?: string;
+}
+
+export interface SkinAnalysisResponse {
+  metrics: {
+    hyperpigmentation: number;
+    melasma: number;
+    eyebags: number;
+    redness: number;
+    texture: number;
+    wrinkles: number;
+    skinSagging: number;
+    darkSpots: number;
+    freckles: number;
+  };
+  overallScore: number;
 } 

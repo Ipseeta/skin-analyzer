@@ -1,9 +1,26 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { SkinAnalysisResponse } from '@/app/types'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
+
+const ANALYSIS_PROMPT = `You are a skin analysis expert. Analyze the facial skin image and provide a JSON response in exactly this format:
+{
+  "metrics": {
+    "hyperpigmentation": <0-100>,
+    "melasma": <0-100>,
+    "eyebags": <0-100>,
+    "redness": <0-100>,
+    "texture": <0-100>,
+    "wrinkles": <0-100>,
+    "skinSagging": <0-100>,
+    "darkSpots": <0-100>,
+    "freckles": <0-100>
+  },
+  "overallScore": <0-100>
+}`
 
 export async function POST(request: Request) {
   try {
@@ -17,13 +34,12 @@ export async function POST(request: Request) {
 
     // Remove data URL prefix if present
     const base64Image = image.replace(/^data:image\/[a-z]+;base64,/, '')
-
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: "You are a skin analysis expert. Analyze the facial skin image and provide scores from 0-100 for these metrics: hyperpigmentation, melasma, eyebags, redness, texture, wrinkles, skin sagging, dark spots, and freckles. Also provide an overall skin health score. Format as JSON.",
+          content: ANALYSIS_PROMPT,
         },
         {
           role: "user",
@@ -46,12 +62,12 @@ export async function POST(request: Request) {
     })
 
     const analysisContent = response.choices[0].message.content
-    console.log('Analysis response:', analysisContent)
     if (!analysisContent) {
       throw new Error('No analysis content received')
     }
 
-    return NextResponse.json(JSON.parse(analysisContent))
+    const analysis = JSON.parse(analysisContent) as SkinAnalysisResponse
+    return NextResponse.json(analysis)
   } catch (error) {
     console.error('Error analyzing image:', error)
     if (error instanceof Error) {
