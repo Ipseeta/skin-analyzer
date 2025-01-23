@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SkinAnalysisResponse } from '../types'
 
@@ -11,24 +11,33 @@ export default function Analysis() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    try {
-      const storedAnalysis = localStorage.getItem('skinAnalysis')
-      if (!storedAnalysis) {
-        setError('No analysis data found')
-        return
-      }
-      
-      const parsedAnalysis = JSON.parse(storedAnalysis) as SkinAnalysisResponse
-      setAnalysis(parsedAnalysis)
-    } catch (err) {
-      setError('Failed to load analysis data')
-      console.error('Error loading analysis:', err)
-    } finally {
-      setLoading(false)
+    const data = localStorage.getItem('skinAnalysis')
+    if (data) {
+      setAnalysis(JSON.parse(data))
     }
+    setLoading(false)
   }, [])
 
-  if (loading) {
+  const getInvertedScore = (score: number) => 100 - score
+  const getScoreColor = (score: number, isOverall = false) => {
+    const displayScore = isOverall ? score : getInvertedScore(score)
+    return displayScore >= 80
+      ? 'bg-green-500'  // Excellent condition
+      : displayScore >= 60
+      ? 'bg-yellow-500' // Good condition with some concerns
+      : 'bg-red-500'    // Needs attention
+  }
+
+  const getTextColor = (score: number, isOverall = false) => {
+    const displayScore = isOverall ? score : getInvertedScore(score)
+    return displayScore >= 80
+      ? 'text-green-500'  // Excellent condition
+      : displayScore >= 60
+      ? 'text-yellow-500' // Good condition with some concerns
+      : 'text-red-500'    // Needs attention
+  }
+
+  if (loading || !analysis) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-md mx-auto">
@@ -60,8 +69,6 @@ export default function Analysis() {
     )
   }
 
-  if (!analysis) return null
-
   const metricEntries = Object.entries(analysis.metrics)
 
   return (
@@ -72,61 +79,51 @@ export default function Analysis() {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Overall Skin Health</h2>
-            <span className={`text-2xl font-bold ${
-              analysis.overallScore >= 80
-                ? 'text-green-500'  // Excellent health
-                : analysis.overallScore >= 60
-                ? 'text-yellow-500' // Good health with concerns
-                : 'text-red-500'    // Needs attention
-            }`}>
+            <span className={`text-2xl font-bold ${getTextColor(analysis.overallScore, true)}`}>
               {analysis.overallScore}/100
             </span>
           </div>
           
           <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className={`h-full ${
-                analysis.overallScore >= 80
-                  ? 'bg-green-500'  // Excellent health
-                  : analysis.overallScore >= 60
-                  ? 'bg-yellow-500' // Good health with concerns
-                  : 'bg-red-500'    // Needs attention
-              }`}
+              className={`h-full ${getScoreColor(analysis.overallScore, true)}`}
               style={{ width: `${analysis.overallScore}%` }}
             ></div>
           </div>
           <p className="text-sm text-gray-600 mt-2">
-            Higher overall score indicates better skin health
+            Higher score indicates better overall skin health
           </p>
         </div>
 
         <div className="space-y-4">
-          {metricEntries.map(([name, score]) => (
-            <div key={name} className="bg-white rounded-lg shadow-lg p-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium">
-                  {name
-                    .split(/(?=[A-Z])|_/)
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                    .join(' ')
-                    .trim()}
-                </span>
-                <span className="text-sm font-semibold">({score})</span>
+          {metricEntries.map(([name, score]) => {
+            const invertedScore = getInvertedScore(score)
+            return (
+              <div key={name} className="bg-white rounded-lg shadow-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium">
+                    {name
+                      .split(/(?=[A-Z])|_/)
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ')
+                      .trim()}
+                  </span>
+                  <span className={`text-sm font-semibold ${getTextColor(score)}`}>
+                    {invertedScore}/100
+                  </span>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${getScoreColor(score)}`}
+                    style={{ width: `${invertedScore}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Higher score indicates better condition
+                </p>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${
-                    score >= 70
-                      ? 'bg-red-500'    // High/severe concerns in red
-                      : score >= 50
-                      ? 'bg-yellow-500' // Moderate concerns in yellow
-                      : 'bg-green-500'  // Good condition in green
-                  }`}
-                  style={{ width: `${score}%` }}
-                ></div>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <div className="mt-8 space-y-4">
