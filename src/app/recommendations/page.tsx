@@ -26,6 +26,8 @@ export default function Recommendations() {
   const AMAZON_TAG = 'skinguru07-20'
 
   useEffect(() => {
+    let mounted = true
+
     const getRecommendations = async () => {
       try {
         const analysisData = localStorage.getItem('skinAnalysis')
@@ -51,16 +53,26 @@ export default function Recommendations() {
           throw new Error('Invalid response format')
         }
 
-        setRecommendations(data.recommendations)
+        if (mounted) {
+          setRecommendations(data.recommendations)
+        }
       } catch (error) {
         console.error('Error loading recommendations:', error)
-        setError(error instanceof Error ? error.message : 'Failed to load recommendations')
+        if (mounted) {
+          setError(error instanceof Error ? error.message : 'Failed to load recommendations')
+        }
       } finally {
-        setLoading(false)
+        if (mounted) {
+          setLoading(false)
+        }
       }
     }
 
     getRecommendations()
+
+    return () => {
+      mounted = false
+    }
   }, [router])
 
   const getAmazonSearchUrl = (searchTerm: string) => {

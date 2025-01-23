@@ -17,7 +17,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {children}
+        {process.env.NODE_ENV === 'development' ? 
+          <div suppressHydrationWarning>{children}</div> : 
+          children
+        }
       </body>
     </html>
   )

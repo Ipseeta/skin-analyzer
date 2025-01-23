@@ -37,7 +37,6 @@ export interface SkinMetrics {
   smoothness: number;
   unevenSkintone: number;
   radiance: number;
-  dullSkin: number;
   skinShine: number;
   hyperpigmentation: number;
   melasma: number;

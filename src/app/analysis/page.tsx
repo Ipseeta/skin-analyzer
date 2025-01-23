@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SkinAnalysisResponse } from '../types'
+import { METRIC_MESSAGES } from '../constants/metrics'
 
 export default function Analysis() {
   const router = useRouter()
@@ -18,23 +19,42 @@ export default function Analysis() {
     setLoading(false)
   }, [])
 
-  const getInvertedScore = (score: number) => 100 - score
-  const getScoreColor = (score: number, isOverall = false) => {
-    const displayScore = isOverall ? score : getInvertedScore(score)
-    return displayScore >= 80
-      ? 'bg-green-500'  // Excellent condition
-      : displayScore >= 60
-      ? 'bg-yellow-500' // Good condition with some concerns
+  // Get description based on score
+  const getMetricDescription = (score: number) => {
+    if (score >= 90) return 'Excellent'
+    if (score >= 70) return 'Good'
+    if (score >= 50) return 'Moderate'
+    return 'Needs Attention'
+  }
+
+  // Get color based on score
+  const getScoreColor = (score: number) => {
+    return score >= 90
+      ? 'bg-green-500'  // Excellent health
+      : score >= 70
+      ? 'bg-blue-500'   // Good health
+      : score >= 50
+      ? 'bg-yellow-500' // Moderate concern
       : 'bg-red-500'    // Needs attention
   }
 
-  const getTextColor = (score: number, isOverall = false) => {
-    const displayScore = isOverall ? score : getInvertedScore(score)
-    return displayScore >= 80
-      ? 'text-green-500'  // Excellent condition
-      : displayScore >= 60
-      ? 'text-yellow-500' // Good condition with some concerns
-      : 'text-red-500'    // Needs attention
+  // Format metric name for display
+  const formatMetricName = (name: string) => {
+    return name
+      .split(/(?=[A-Z])|_/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+      .trim()
+  }
+
+  const getCustomMessage = (metricName: string, score: number) => {
+    const messages = METRIC_MESSAGES[metricName as keyof typeof METRIC_MESSAGES]
+    if (!messages) return getMetricDescription(score)
+
+    if (score >= 90) return messages.excellent
+    if (score >= 70) return messages.good
+    if (score >= 50) return messages.moderate
+    return messages.poor
   }
 
   if (loading || !analysis) {
@@ -69,61 +89,60 @@ export default function Analysis() {
     )
   }
 
-  const metricEntries = Object.entries(analysis.metrics)
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Skin Analysis Results</h1>
+        <h1 className="text-2xl font-bold mb-6">Skin Health Analysis</h1>
         
+        {/* Overall Score Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Overall Skin Health</h2>
-            <span className={`text-2xl font-bold ${getTextColor(analysis.overallScore, true)}`}>
+            <span className={`text-2xl font-bold ${
+              analysis.overallScore >= 90
+                ? 'text-green-500'
+                : analysis.overallScore >= 70
+                ? 'text-blue-500'
+                : analysis.overallScore >= 50
+                ? 'text-yellow-500'
+                : 'text-red-500'
+            }`}>
               {analysis.overallScore}/100
             </span>
           </div>
           
           <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className={`h-full ${getScoreColor(analysis.overallScore, true)}`}
+              className={`h-full ${getScoreColor(analysis.overallScore)}`}
               style={{ width: `${analysis.overallScore}%` }}
             ></div>
           </div>
           <p className="text-sm text-gray-600 mt-2">
-            Higher score indicates better overall skin health
+            Higher score indicates better skin health
           </p>
         </div>
-
+        
+        {/* Individual Metrics */}
         <div className="space-y-4">
-          {metricEntries.map(([name, score]) => {
-            const invertedScore = getInvertedScore(score)
-            return (
-              <div key={name} className="bg-white rounded-lg shadow-lg p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium">
-                    {name
-                      .split(/(?=[A-Z])|_/)
-                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                      .join(' ')
-                      .trim()}
-                  </span>
-                  <span className={`text-sm font-semibold ${getTextColor(score)}`}>
-                    {invertedScore}/100
-                  </span>
-                </div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${getScoreColor(score)}`}
-                    style={{ width: `${invertedScore}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Higher score indicates better condition
-                </p>
+          {Object.entries(analysis.metrics || {}).map(([name, score]) => (
+            <div key={name} className="bg-white rounded-lg shadow-lg p-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-medium">{formatMetricName(name)}</span>
+                <span className="text-sm font-semibold">
+                  {score}/100 - {getMetricDescription(score)}
+                </span>
               </div>
-            )
-          })}
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${getScoreColor(score)}`}
+                  style={{ width: `${score}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {getCustomMessage(name, score)}
+              </p>
+            </div>
+          ))}
         </div>
 
         <div className="mt-8 space-y-4">
