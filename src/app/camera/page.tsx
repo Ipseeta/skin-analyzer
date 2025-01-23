@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Webcam from 'react-webcam'
+import type { QuestionnaireResponse } from '../types'
 
 export default function Camera() {
   const router = useRouter()
@@ -23,6 +24,12 @@ export default function Camera() {
   const handleNext = async () => {
     if (capturedImage) {
       try {
+        // Get questionnaire data from localStorage
+        const questionnaireData = localStorage.getItem('skinQuestionnaire')
+        const questionnaire = questionnaireData ? 
+          JSON.parse(questionnaireData) as QuestionnaireResponse : 
+          undefined
+
         // Remove the data:image/jpeg;base64, prefix if it exists
         const base64Image = capturedImage.split(',')[1] || capturedImage
 
@@ -31,7 +38,10 @@ export default function Camera() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ image: base64Image }),
+          body: JSON.stringify({ 
+            image: base64Image,
+            questionnaire // Include questionnaire data
+          }),
         })
 
         if (!response.ok) {
@@ -39,7 +49,13 @@ export default function Camera() {
         }
 
         const analysis = await response.json()
-        localStorage.setItem('skinAnalysis', JSON.stringify(analysis))
+        
+        // Store both analysis and questionnaire data
+        localStorage.setItem('skinAnalysis', JSON.stringify({
+          ...analysis,
+          questionnaire
+        }))
+        
         router.push('/analysis')
       } catch (error) {
         console.error('Error analyzing image:', error)
