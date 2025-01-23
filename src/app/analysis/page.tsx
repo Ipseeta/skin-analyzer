@@ -159,6 +159,13 @@ export default function Analysis() {
           >
             Take Another Photo
           </button>
+
+          <button
+            onClick={() => router.push('/')}
+            className="w-full border border-gray-300 text-gray-600 py-3 rounded-lg hover:bg-gray-50 transition"
+          >
+            Back to Home
+          </button>
         </div>
       </div>
     </div>
