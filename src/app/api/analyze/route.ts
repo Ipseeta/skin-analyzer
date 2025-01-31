@@ -7,7 +7,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-const ANALYSIS_PROMPT = `You are a skin analysis expert. Analyze the facial skin image and provide a JSON response in exactly this format:
+const ANALYSIS_PROMPT = `You are a skin analysis expert like a dermatologist. Analyze the facial skin image and provide a JSON response in exactly this format:
 {
   "metrics": {
     "darkCircles": <0-100>,
