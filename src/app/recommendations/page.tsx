@@ -20,12 +20,24 @@ interface RecommendationsResponse {
   error?: string
 }
 
+const AMAZON_DOMAINS = {
+  'IN': 'amazon.in',
+  'CA': 'amazon.ca',
+  'UK': 'amazon.co.uk',
+  'DE': 'amazon.de',
+  'FR': 'amazon.fr',
+  'IT': 'amazon.it',
+  'ES': 'amazon.es',
+  'JP': 'amazon.co.jp',
+  'US': 'amazon.com', // default
+} as const
+
 export default function Recommendations() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [error, setError] = useState<string | null>(null)
-  const AMAZON_TAG = 'skinguru07-20'
+  const [userCountry, setUserCountry] = useState('US')
 
   useEffect(() => {
     let mounted = true
@@ -71,14 +83,26 @@ export default function Recommendations() {
 
     getRecommendations()
 
+    // Get user's location
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        const country = data.country as keyof typeof AMAZON_DOMAINS
+        if (country in AMAZON_DOMAINS) {
+          setUserCountry(country)
+        }
+      })
+      .catch(err => console.error('Error getting location:', err))
+
     return () => {
       mounted = false
     }
   }, [router])
 
   const getAmazonSearchUrl = (searchTerm: string) => {
+    const domain = AMAZON_DOMAINS[userCountry as keyof typeof AMAZON_DOMAINS] || AMAZON_DOMAINS.US
     const encodedSearch = encodeURIComponent(searchTerm)
-    return `https://www.amazon.com/s?k=${encodedSearch}&tag=${AMAZON_TAG}`
+    return `https://www.${domain}/s?k=${encodedSearch}`
   }
 
   if (error) {
